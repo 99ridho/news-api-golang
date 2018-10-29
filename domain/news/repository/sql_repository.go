@@ -13,6 +13,10 @@ type newsSQLRepository struct {
 	Conn *sqlx.DB
 }
 
+func NewNewsSQLRepository(conn *sqlx.DB) news.NewsRepository {
+	return &newsSQLRepository{conn}
+}
+
 func (repo *newsSQLRepository) fetch(ctx context.Context, query string, args ...interface{}) ([]*models.News, error) {
 	stmt, err := repo.Conn.PreparexContext(ctx, query)
 	if err != nil {
@@ -67,10 +71,6 @@ func (repo *newsSQLRepository) transaction(ctx context.Context, handler func(tx 
 	}()
 
 	err = handler(tx)
-}
-
-func NewNewsSQLRepository(conn *sqlx.DB) news.NewsRepository {
-	return &newsSQLRepository{conn}
 }
 
 func (repo *newsSQLRepository) FetchById(ctx context.Context, id int64) (*models.News, error) {
