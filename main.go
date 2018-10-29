@@ -41,6 +41,8 @@ func loadConfigurationFile() {
 }
 
 func main() {
+	defer conn.Close()
+
 	r := echo.New()
 	r.Use(middleware.Logger(), middleware.Recover())
 
