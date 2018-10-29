@@ -1,0 +1,13 @@
+{
+    "database": {
+        "username": "root",
+        "password": "123321",
+        "name": "newsapi",
+        "port": "3306",
+        "host": "127.0.0.1",
+        "driverName": "mysql"
+    },
+    "server": {
+        "address": ":9090"
+    }
+}
