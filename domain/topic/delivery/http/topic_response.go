@@ -10,3 +10,7 @@ type FetchTopicResponse struct {
 type InsertTopicResponse struct {
 	Topic *models.Topic `json:"inserted_topic"`
 }
+
+type UpdateTopicResponse struct {
+	Topic *models.Topic `json:"updated_topic"`
+}

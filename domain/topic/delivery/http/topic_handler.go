@@ -104,6 +104,51 @@ func (h *TopicHandler) InsertTopic(c echo.Context) error {
 	})
 }
 
+func (h *TopicHandler) UpdateTopic(c echo.Context) error {
+	id := c.Param("id")
+	intId, err := strconv.Atoi(id)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Topic ID must int").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	topic := new(models.Topic)
+	err = c.Bind(topic)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	ctx := c.Request().Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	topic.ID = int64(intId)
+	result, err := h.UseCase.UpdateTopic(ctx, topic)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Update topic failed").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	return c.JSON(http.StatusOK, &models.GeneralResponse{
+		Data: &UpdateTopicResponse{
+			Topic: result,
+		},
+		ErrorMessage: "",
+		Message:      "OK",
+	})
+}
+
 func InitializeTopicHandler(r *echo.Echo, usecase topic.TopicUseCase) {
 	handler := &TopicHandler{
 		UseCase: usecase,
@@ -113,4 +158,5 @@ func InitializeTopicHandler(r *echo.Echo, usecase topic.TopicUseCase) {
 
 	g.GET("", handler.FetchTopics)
 	g.POST("", handler.InsertTopic)
+	g.PUT("/:id", handler.UpdateTopic)
 }
