@@ -20,6 +20,7 @@ func (repo *newsSQLRepository) fetch(ctx context.Context, query string, args ...
 	}
 
 	rows, err := stmt.QueryxContext(ctx, args...)
+	defer rows.Close()
 	if err != nil {
 		return []*models.News{}, errors.Wrap(err, "Failed to fetch news rows")
 	}
