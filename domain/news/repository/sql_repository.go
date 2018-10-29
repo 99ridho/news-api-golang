@@ -106,7 +106,7 @@ func (repo *newsSQLRepository) Store(ctx context.Context, news *models.News) (in
 
 		id, err := insertNewsResult.LastInsertId()
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Insert news result have an error")
 		}
 
 		for _, topicID := range news.TopicIDs {
