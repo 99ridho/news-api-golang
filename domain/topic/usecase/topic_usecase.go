@@ -49,6 +49,6 @@ func (uc *topicUseCaseImplementation) UpdateTopic(ctx context.Context, topic *mo
 	return uc.repo.Update(ctx, topic)
 }
 
-func (uc *topicUseCaseImplementation) DeleteTopic(ctx context.Context, topic *models.Topic) (bool, error) {
-	panic("not implemented")
+func (uc *topicUseCaseImplementation) DeleteTopic(ctx context.Context, id int64) (bool, error) {
+	return uc.repo.Delete(ctx, id)
 }

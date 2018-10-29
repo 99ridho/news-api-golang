@@ -11,5 +11,5 @@ type TopicUseCase interface {
 	FetchTopics(ctx context.Context, limit, cursor int64) ([]*models.Topic, *models.Pagination, error)
 	InsertTopic(ctx context.Context, topic *models.Topic) (*models.Topic, error)
 	UpdateTopic(ctx context.Context, topic *models.Topic) (*models.Topic, error)
-	DeleteTopic(ctx context.Context, topic *models.Topic) (bool, error)
+	DeleteTopic(ctx context.Context, id int64) (bool, error)
 }

@@ -120,3 +120,27 @@ func TestFailedUpdateTopic(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 }
+
+func TestSuccessDeleteTopic(t *testing.T) {
+	repoMock := new(topicmocks.TopicRepository)
+
+	repoMock.On("Delete", mock.Anything, mock.AnythingOfType("int64")).Return(true, nil)
+
+	uc := topicusecase.NewTopicUseCaseImplementation(repoMock)
+	result, err := uc.DeleteTopic(context.TODO(), 1)
+
+	assert.NoError(t, err)
+	assert.True(t, result)
+}
+
+func TestFailedDeleteTopic(t *testing.T) {
+	repoMock := new(topicmocks.TopicRepository)
+
+	repoMock.On("Delete", mock.Anything, mock.AnythingOfType("int64")).Return(false, errors.New("failed"))
+
+	uc := topicusecase.NewTopicUseCaseImplementation(repoMock)
+	result, err := uc.DeleteTopic(context.TODO(), 1)
+
+	assert.Error(t, err)
+	assert.False(t, result)
+}
