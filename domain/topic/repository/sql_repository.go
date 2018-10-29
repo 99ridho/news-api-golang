@@ -83,7 +83,7 @@ func (repo *topicSQLRepository) Store(ctx context.Context, topic *models.Topic) 
 		return 0, errors.Wrap(err, "Prepare statement failed")
 	}
 
-	result, err := stmt.ExecContext(ctx, query, topic.Slug, topic.Name)
+	result, err := stmt.ExecContext(ctx, topic.Slug, topic.Name)
 	if err != nil {
 		return 0, errors.Wrap(err, "Inserting topic failed")
 	}
@@ -99,7 +99,7 @@ func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic)
 		return nil, errors.Wrap(err, "Prepare statement failed")
 	}
 
-	result, err := stmt.ExecContext(ctx, query, topic.Slug, topic.Name, topic.ID)
+	result, err := stmt.ExecContext(ctx, topic.Slug, topic.Name, topic.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "Updating topic failed")
 	}
@@ -120,7 +120,7 @@ func (repo *topicSQLRepository) Delete(ctx context.Context, id int64) (bool, err
 		return false, errors.Wrap(err, "Prepare statement failed")
 	}
 
-	result, err := stmt.ExecContext(ctx, query, id)
+	result, err := stmt.ExecContext(ctx, id)
 	if err != nil {
 		return false, errors.Wrap(err, "Deleting topic failed")
 	}

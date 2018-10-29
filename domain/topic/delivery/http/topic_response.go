@@ -6,3 +6,7 @@ type FetchTopicResponse struct {
 	Topics     []*models.Topic    `json:"topics"`
 	Pagination *models.Pagination `json:"pagination"`
 }
+
+type InsertTopicResponse struct {
+	Topic *models.Topic `json:"inserted_topic"`
+}

@@ -70,6 +70,40 @@ func (h *TopicHandler) FetchTopics(c echo.Context) error {
 	})
 }
 
+func (h *TopicHandler) InsertTopic(c echo.Context) error {
+	topic := new(models.Topic)
+	err := c.Bind(topic)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	ctx := c.Request().Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	result, err := h.UseCase.InsertTopic(ctx, topic)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Insert topic failed").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	return c.JSON(http.StatusOK, &models.GeneralResponse{
+		Data: &InsertTopicResponse{
+			Topic: result,
+		},
+		ErrorMessage: "",
+		Message:      "OK",
+	})
+}
+
 func InitializeTopicHandler(r *echo.Echo, usecase topic.TopicUseCase) {
 	handler := &TopicHandler{
 		UseCase: usecase,
@@ -78,4 +112,5 @@ func InitializeTopicHandler(r *echo.Echo, usecase topic.TopicUseCase) {
 	g := r.Group("/topic")
 
 	g.GET("", handler.FetchTopics)
+	g.POST("", handler.InsertTopic)
 }
