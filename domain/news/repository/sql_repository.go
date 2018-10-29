@@ -61,7 +61,8 @@ func (repo *newsSQLRepository) FetchById(ctx context.Context, id int64) (*models
 }
 
 func (repo *newsSQLRepository) FetchBySlug(ctx context.Context, slug string) (*models.News, error) {
-	panic("not implemented")
+	query := "SELECT * FROM `news` WHERE `slug` = ?"
+	return repo.fetchSingle(ctx, query, slug)
 }
 
 func (repo *newsSQLRepository) FetchByStatus(ctx context.Context, status *models.NewsStatus) ([]*models.News, error) {
