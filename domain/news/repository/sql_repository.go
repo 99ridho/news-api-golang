@@ -56,7 +56,7 @@ func (repo *newsSQLRepository) fetchSingle(ctx context.Context, query string, ar
 	return news[0], nil
 }
 
-func (repo *newsSQLRepository) transaction(ctx context.Context, handler func(tx *sqlx.Tx) error) {
+func (repo *newsSQLRepository) transaction(ctx context.Context, handler func(tx *sqlx.Tx) error) (err error) {
 	tx, err := repo.Conn.BeginTxx(ctx, nil)
 	if err != nil {
 		return
@@ -71,6 +71,7 @@ func (repo *newsSQLRepository) transaction(ctx context.Context, handler func(tx 
 	}()
 
 	err = handler(tx)
+	return err
 }
 
 func (repo *newsSQLRepository) FetchById(ctx context.Context, id int64) (*models.News, error) {
@@ -90,39 +91,38 @@ func (repo *newsSQLRepository) FetchByStatus(ctx context.Context, status *models
 
 func (repo *newsSQLRepository) Store(ctx context.Context, news *models.News) (int64, error) {
 	newsID := int64(0)
-	var insertNewsError error
 
-	repo.transaction(ctx, func(tx *sqlx.Tx) error {
-		stmt, err := tx.PreparexContext(ctx, "INSERT INTO `news` (`author`, `slug`, `title`, `description`, `content`, `status`) VALUES (?,?,?,?,?,?)")
+	insertNewsError := repo.transaction(ctx, func(tx *sqlx.Tx) error {
+		insertNewsQuery := "INSERT INTO `news` (`author`, `slug`, `title`, `description`, `content`, `status`) VALUES (?,?,?,?,?,?)"
+		stmt, err := tx.PreparexContext(ctx, insertNewsQuery)
 		if err != nil {
-			insertNewsError = errors.Wrap(err, "Prepare statement failed")
-			return insertNewsError
+			return errors.Wrap(err, "Prepare statement failed")
 		}
 
 		insertNewsResult, err := stmt.ExecContext(ctx, news.Author, news.Slug, news.Title, news.Description, news.Content, news.Status)
 		if err != nil {
-			insertNewsError = errors.Wrap(err, "Prepare statement failed")
-			return insertNewsError
+			return errors.Wrap(err, "Can't insert news")
 		}
 
-		id, insertNewsError := insertNewsResult.LastInsertId()
+		id, err := insertNewsResult.LastInsertId()
+		if err != nil {
+			return err
+		}
 
 		for _, topicID := range news.TopicIDs {
-			stmt, err := tx.PreparexContext(ctx, "INSERT INTO `news_topic` (`news_id`, `topic_id`) VALUES (?,?)")
+			insertNewsTopicQuery := "INSERT INTO `news_topic` (`news_id`, `topic_id`) VALUES (?,?)"
+			stmt, err := tx.PreparexContext(ctx, insertNewsTopicQuery)
 			if err != nil {
-				insertNewsError = errors.Wrap(err, "Prepare statement failed")
-				return insertNewsError
+				return errors.Wrap(err, "Prepare statement failed")
 			}
 
 			_, err = stmt.ExecContext(ctx, newsID, topicID)
 			if err != nil {
-				insertNewsError = errors.Wrap(err, "Prepare statement failed")
-				return insertNewsError
+				return errors.Wrap(err, "Can't insert news topic")
 			}
 		}
 
 		newsID = id
-		insertNewsError = nil
 		return nil
 	})
 
