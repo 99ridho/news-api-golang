@@ -4,9 +4,9 @@ package models
 type NewsStatus byte
 
 const (
-	Published NewsStatus = iota
-	Draft
-	Deleted
+	NewsStatusPublished NewsStatus = iota
+	NewsStatusDraft
+	NewsStatusDeleted
 )
 
 func (ns NewsStatus) String() string {
