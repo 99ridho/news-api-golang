@@ -27,7 +27,7 @@ func TestFetchTopics(t *testing.T) {
 		AddRow(1, "motogp", "MotoGP", time.Now(), time.Now()).
 		AddRow(2, "fifawc", "World Cup 2018", time.Now(), time.Now())
 
-	mock.ExpectQuery(query).WillReturnRows(rows)
+	mock.ExpectPrepare(query).ExpectQuery().WillReturnRows(rows)
 
 	topics, err := repo.Fetch(context.Background(), 0, 6)
 
@@ -49,7 +49,7 @@ func TestFetchTopicByID(t *testing.T) {
 		AddRow(1, "motogp", "MotoGP", time.Now(), time.Now()).
 		AddRow(2, "fifawc", "World Cup 2018", time.Now(), time.Now())
 
-	mock.ExpectQuery(query).WillReturnRows(rows)
+	mock.ExpectPrepare(query).ExpectQuery().WillReturnRows(rows)
 
 	topic, err := repo.FetchById(context.Background(), 1)
 
@@ -71,7 +71,7 @@ func TestFetchTopicBySlug(t *testing.T) {
 		AddRow(1, "motogp", "MotoGP", time.Now(), time.Now()).
 		AddRow(2, "fifawc", "World Cup 2018", time.Now(), time.Now())
 
-	mock.ExpectQuery(query).WillReturnRows(rows)
+	mock.ExpectPrepare(query).ExpectQuery().WillReturnRows(rows)
 
 	topic, err := repo.FetchBySlug(context.Background(), "motogp")
 

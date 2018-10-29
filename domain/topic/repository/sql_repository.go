@@ -23,9 +23,14 @@ func NewTopicSQLRepository(conn *sqlx.DB) topic.TopicRepository {
 }
 
 func (repo *topicSQLRepository) fetch(ctx context.Context, query string, args ...interface{}) ([]*models.Topic, error) {
-	rows, err := repo.Conn.QueryxContext(ctx, query, args...)
+	stmt, err := repo.Conn.PreparexContext(ctx, query)
 	if err != nil {
-		return nil, err
+		return []*models.Topic{}, errors.Wrap(err, "Prepare statement failed")
+	}
+
+	rows, err := stmt.QueryxContext(ctx, args...)
+	if err != nil {
+		return []*models.Topic{}, errors.Wrap(err, "Failed to fetch topic rows")
 	}
 
 	topics := make([]*models.Topic, 0)
