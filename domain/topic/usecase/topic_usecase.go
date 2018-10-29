@@ -40,11 +40,12 @@ func (uc *topicUseCaseImplementation) FetchTopics(ctx context.Context, limit int
 
 func (uc *topicUseCaseImplementation) InsertTopic(ctx context.Context, topic *models.Topic) (*models.Topic, error) {
 	topic.Slug = slug.Make(topic.Name)
-	_, err := uc.repo.Store(ctx, topic)
+	id, err := uc.repo.Store(ctx, topic)
 	if err != nil {
 		return nil, err
 	}
 
+	topic.ID = id
 	return topic, nil
 }
 
