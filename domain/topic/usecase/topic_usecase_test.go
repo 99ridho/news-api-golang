@@ -2,6 +2,7 @@ package topicusecase_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,4 +51,38 @@ func TestFetchTopics(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(5), pagination.NextCursor)
 	assert.Len(t, result, len(result))
+}
+
+func TestSuccessInsertTopic(t *testing.T) {
+	repoMock := new(topicmocks.TopicRepository)
+	topic := &models.Topic{
+		ID:   3,
+		Name: "Moto GP",
+		Slug: "moto-gp",
+	}
+
+	repoMock.On("Store", mock.Anything, mock.AnythingOfType("*models.Topic")).Return(int64(3), nil)
+
+	uc := topicusecase.NewTopicUseCaseImplementation(repoMock)
+	result, err := uc.InsertTopic(context.TODO(), topic)
+
+	assert.NoError(t, err)
+	assert.Equal(t, topic, result)
+}
+
+func TestFailedInsertTopic(t *testing.T) {
+	repoMock := new(topicmocks.TopicRepository)
+	topic := &models.Topic{
+		ID:   3,
+		Name: "Moto GP",
+		Slug: "moto-gp",
+	}
+
+	repoMock.On("Store", mock.Anything, mock.AnythingOfType("*models.Topic")).Return(int64(0), errors.New("Failed"))
+
+	uc := topicusecase.NewTopicUseCaseImplementation(repoMock)
+	result, err := uc.InsertTopic(context.TODO(), topic)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
 }

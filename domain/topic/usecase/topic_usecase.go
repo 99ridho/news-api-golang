@@ -37,7 +37,12 @@ func (uc *topicUseCaseImplementation) FetchTopics(ctx context.Context, limit int
 }
 
 func (uc *topicUseCaseImplementation) InsertTopic(ctx context.Context, topic *models.Topic) (*models.Topic, error) {
-	panic("not implemented")
+	_, err := uc.repo.Store(ctx, topic)
+	if err != nil {
+		return nil, err
+	}
+
+	return topic, nil
 }
 
 func (uc *topicUseCaseImplementation) UpdateTopic(ctx context.Context, topic *models.Topic) (*models.Topic, error) {
