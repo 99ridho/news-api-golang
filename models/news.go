@@ -14,6 +14,7 @@ type News struct {
 	Title                  string         `json:"title" db:"title"`
 	Description            string         `json:"description" db:"description"`
 	Content                string         `json:"content" db:"content"`
+	TopicIDs               []int64        `json:"-"`
 	Status                 string         `json:"status" db:"status"`
 	PublishedAtNullableSQL mysql.NullTime `json:"-" db:"published_at"`
 	PublishedAt            time.Time      `json:"published_at"`
