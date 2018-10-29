@@ -14,3 +14,7 @@ type InsertTopicResponse struct {
 type UpdateTopicResponse struct {
 	Topic *models.Topic `json:"updated_topic"`
 }
+
+type DeleteTopicResponse struct {
+	IsSuccess bool `json:"is_success"`
+}

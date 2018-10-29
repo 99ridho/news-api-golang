@@ -149,6 +149,40 @@ func (h *TopicHandler) UpdateTopic(c echo.Context) error {
 	})
 }
 
+func (h *TopicHandler) DeleteTopic(c echo.Context) error {
+	id := c.Param("id")
+	intId, err := strconv.Atoi(id)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Topic ID must int").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	ctx := c.Request().Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	ok, err := h.UseCase.DeleteTopic(ctx, int64(intId))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Delete topic failed").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	return c.JSON(http.StatusOK, &models.GeneralResponse{
+		Data: &DeleteTopicResponse{
+			IsSuccess: ok,
+		},
+		ErrorMessage: "",
+		Message:      "OK",
+	})
+}
+
 func InitializeTopicHandler(r *echo.Echo, usecase topic.TopicUseCase) {
 	handler := &TopicHandler{
 		UseCase: usecase,
@@ -159,4 +193,5 @@ func InitializeTopicHandler(r *echo.Echo, usecase topic.TopicUseCase) {
 	g.GET("", handler.FetchTopics)
 	g.POST("", handler.InsertTopic)
 	g.PUT("/:id", handler.UpdateTopic)
+	g.DELETE("/:id", handler.DeleteTopic)
 }
