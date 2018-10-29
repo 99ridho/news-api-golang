@@ -29,6 +29,7 @@ func (repo *topicSQLRepository) fetch(ctx context.Context, query string, args ..
 	}
 
 	rows, err := stmt.QueryxContext(ctx, args...)
+	defer rows.Close()
 	if err != nil {
 		return []*models.Topic{}, errors.Wrap(err, "Failed to fetch topic rows")
 	}
