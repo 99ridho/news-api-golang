@@ -58,7 +58,7 @@ func TestSuccessInsertTopic(t *testing.T) {
 	topic := &models.Topic{
 		ID:   3,
 		Name: "Moto GP",
-		Slug: "moto-gp",
+		Slug: "",
 	}
 
 	repoMock.On("Store", mock.Anything, mock.AnythingOfType("*models.Topic")).Return(int64(3), nil)
@@ -68,6 +68,7 @@ func TestSuccessInsertTopic(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, topic, result)
+	assert.Equal(t, "moto-gp", topic.Slug)
 }
 
 func TestFailedInsertTopic(t *testing.T) {
