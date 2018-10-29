@@ -11,20 +11,20 @@ type TopicUseCase struct {
 	mock.Mock
 }
 
-// DeleteTopic provides a mock function with given fields: ctx, _a1
-func (_m *TopicUseCase) DeleteTopic(ctx context.Context, _a1 *models.Topic) (bool, error) {
-	ret := _m.Called(ctx, _a1)
+// DeleteTopic provides a mock function with given fields: ctx, id
+func (_m *TopicUseCase) DeleteTopic(ctx context.Context, id int64) (bool, error) {
+	ret := _m.Called(ctx, id)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, *models.Topic) bool); ok {
-		r0 = rf(ctx, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, int64) bool); ok {
+		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *models.Topic) error); ok {
-		r1 = rf(ctx, _a1)
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -33,7 +33,7 @@ func (_m *TopicUseCase) DeleteTopic(ctx context.Context, _a1 *models.Topic) (boo
 }
 
 // FetchTopics provides a mock function with given fields: ctx, limit, cursor
-func (_m *TopicUseCase) FetchTopics(ctx context.Context, limit int64, cursor int64) ([]*models.Topic, error) {
+func (_m *TopicUseCase) FetchTopics(ctx context.Context, limit int64, cursor int64) ([]*models.Topic, *models.Pagination, error) {
 	ret := _m.Called(ctx, limit, cursor)
 
 	var r0 []*models.Topic
@@ -45,14 +45,23 @@ func (_m *TopicUseCase) FetchTopics(ctx context.Context, limit int64, cursor int
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, int64, int64) error); ok {
+	var r1 *models.Pagination
+	if rf, ok := ret.Get(1).(func(context.Context, int64, int64) *models.Pagination); ok {
 		r1 = rf(ctx, limit, cursor)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*models.Pagination)
+		}
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, int64, int64) error); ok {
+		r2 = rf(ctx, limit, cursor)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // InsertTopic provides a mock function with given fields: ctx, _a1
