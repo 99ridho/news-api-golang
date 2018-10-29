@@ -83,3 +83,31 @@ func TestFetchNewsByStatus(t *testing.T) {
 	assert.Equal(t, int64(2), results[1].ID)
 	assert.Equal(t, int64(3), results[2].ID)
 }
+
+func TestStoreNews(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	sqlxMockDb := sqlx.NewDb(db, "sqlmock")
+	repo := newsrepository.NewNewsSQLRepository(sqlxMockDb)
+	query := "INSERT INTO \\`news\\`"
+	lastId := int64(3)
+	rowsAffected := int64(1)
+
+	news := &models.News{
+		Title:    "lorem",
+		TopicIDs: []int64{1},
+	}
+
+	mock.ExpectBegin()
+	mock.ExpectPrepare(query).ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
+	mock.ExpectPrepare("INSERT INTO \\`news_topic\\`").ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
+	mock.ExpectCommit()
+
+	result, err := repo.Store(context.Background(), news)
+	assert.NoError(t, err)
+	assert.Equal(t, lastId, result)
+}

@@ -52,6 +52,23 @@ func (repo *newsSQLRepository) fetchSingle(ctx context.Context, query string, ar
 	return news[0], nil
 }
 
+func (repo *newsSQLRepository) transaction(ctx context.Context, handler func(tx *sqlx.Tx) error) {
+	tx, err := repo.Conn.BeginTxx(ctx, nil)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			err = tx.Commit()
+		}
+	}()
+
+	err = handler(tx)
+}
+
 func NewNewsSQLRepository(conn *sqlx.DB) news.NewsRepository {
 	return &newsSQLRepository{conn}
 }
@@ -72,7 +89,44 @@ func (repo *newsSQLRepository) FetchByStatus(ctx context.Context, status *models
 }
 
 func (repo *newsSQLRepository) Store(ctx context.Context, news *models.News) (int64, error) {
-	panic("not implemented")
+	newsID := int64(0)
+	var insertNewsError error
+
+	repo.transaction(ctx, func(tx *sqlx.Tx) error {
+		stmt, err := tx.PreparexContext(ctx, "INSERT INTO `news` (`author`, `slug`, `title`, `description`, `content`, `status`) VALUES (?,?,?,?,?,?)")
+		if err != nil {
+			insertNewsError = errors.Wrap(err, "Prepare statement failed")
+			return insertNewsError
+		}
+
+		insertNewsResult, err := stmt.ExecContext(ctx, news.Author, news.Slug, news.Title, news.Description, news.Content, news.Status)
+		if err != nil {
+			insertNewsError = errors.Wrap(err, "Prepare statement failed")
+			return insertNewsError
+		}
+
+		id, insertNewsError := insertNewsResult.LastInsertId()
+
+		for _, topicID := range news.TopicIDs {
+			stmt, err := tx.PreparexContext(ctx, "INSERT INTO `news_topic` (`news_id`, `topic_id`) VALUES (?,?)")
+			if err != nil {
+				insertNewsError = errors.Wrap(err, "Prepare statement failed")
+				return insertNewsError
+			}
+
+			_, err = stmt.ExecContext(ctx, newsID, topicID)
+			if err != nil {
+				insertNewsError = errors.Wrap(err, "Prepare statement failed")
+				return insertNewsError
+			}
+		}
+
+		newsID = id
+		insertNewsError = nil
+		return nil
+	})
+
+	return newsID, insertNewsError
 }
 
 func (repo *newsSQLRepository) Update(ctx context.Context, news *models.News) (*models.News, error) {
