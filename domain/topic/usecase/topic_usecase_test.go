@@ -86,3 +86,37 @@ func TestFailedInsertTopic(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 }
+
+func TestSuccessUpdateTopic(t *testing.T) {
+	repoMock := new(topicmocks.TopicRepository)
+	topic := &models.Topic{
+		ID:   3,
+		Name: "Moto GP",
+		Slug: "moto-gp",
+	}
+
+	repoMock.On("Update", mock.Anything, mock.AnythingOfType("*models.Topic")).Return(topic, nil)
+
+	uc := topicusecase.NewTopicUseCaseImplementation(repoMock)
+	result, err := uc.UpdateTopic(context.TODO(), topic)
+
+	assert.NoError(t, err)
+	assert.Equal(t, topic, result)
+}
+
+func TestFailedUpdateTopic(t *testing.T) {
+	repoMock := new(topicmocks.TopicRepository)
+	topic := &models.Topic{
+		ID:   3,
+		Name: "Moto GP",
+		Slug: "moto-gp",
+	}
+
+	repoMock.On("Update", mock.Anything, mock.AnythingOfType("*models.Topic")).Return(nil, errors.New("Failed"))
+
+	uc := topicusecase.NewTopicUseCaseImplementation(repoMock)
+	result, err := uc.UpdateTopic(context.TODO(), topic)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
