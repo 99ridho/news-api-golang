@@ -9,6 +9,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/99ridho/news-api/domain/topic/repository"
+	"gitlab.com/99ridho/news-api/models"
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
@@ -76,4 +77,80 @@ func TestFetchTopicBySlug(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "motogp", topic.Slug)
+}
+
+func TestStoreTopic(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	sqlxMockDb := sqlx.NewDb(db, "sqlmock")
+	repo := topicrepository.NewTopicSQLRepository(sqlxMockDb)
+
+	topic := &models.Topic{
+		Name: "motogp",
+		Slug: "motogp",
+	}
+
+	query := "INSERT INTO \\`topic\\`"
+	lastId := int64(3)
+	rowsAffected := int64(1)
+
+	mock.ExpectPrepare(query).ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
+
+	insertedID, err := repo.Store(context.Background(), topic)
+
+	assert.NoError(t, err)
+	assert.Equal(t, lastId, insertedID)
+}
+
+func TestUpdateTopic(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	sqlxMockDb := sqlx.NewDb(db, "sqlmock")
+	repo := topicrepository.NewTopicSQLRepository(sqlxMockDb)
+
+	topic := &models.Topic{
+		Name: "motogp",
+		Slug: "motogp",
+	}
+
+	query := "UPDATE \\`topic\\`"
+	lastId := int64(3)
+	rowsAffected := int64(1)
+
+	mock.ExpectPrepare(query).ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
+
+	newTopic, err := repo.Update(context.Background(), topic)
+
+	assert.NoError(t, err)
+	assert.Equal(t, topic, newTopic)
+}
+
+func TestDeleteTopic(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	sqlxMockDb := sqlx.NewDb(db, "sqlmock")
+	repo := topicrepository.NewTopicSQLRepository(sqlxMockDb)
+
+	query := "DELETE FROM \\`topic\\`"
+	lastId := int64(1)
+	rowsAffected := int64(1)
+
+	mock.ExpectPrepare(query).ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
+
+	deleted, err := repo.Delete(context.Background(), 1)
+
+	assert.NoError(t, err)
+	assert.Equal(t, true, deleted)
 }

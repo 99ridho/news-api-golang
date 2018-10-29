@@ -2,7 +2,8 @@ package topicrepository
 
 import (
 	"context"
-	"errors"
+
+	"github.com/pkg/errors"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/99ridho/news-api/domain/topic"
@@ -69,13 +70,59 @@ func (repo *topicSQLRepository) FetchBySlug(ctx context.Context, slug string) (*
 }
 
 func (repo *topicSQLRepository) Store(ctx context.Context, topic *models.Topic) (int64, error) {
-	panic("not implemented")
+	query := "INSERT INTO `topic` (`slug`, `name`) VALUES (?,?)"
+
+	stmt, err := repo.Conn.PreparexContext(ctx, query)
+	if err != nil {
+		return 0, errors.Wrap(err, "Prepare statement failed")
+	}
+
+	result, err := stmt.ExecContext(ctx, query, topic.Slug, topic.Name)
+	if err != nil {
+		return 0, errors.Wrap(err, "Inserting topic failed")
+	}
+
+	return result.LastInsertId()
 }
 
 func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic) (*models.Topic, error) {
-	panic("not implemented")
+	query := "UPDATE `topic` SET `slug` = ?, `name` = ? WHERE `id` = ?"
+
+	stmt, err := repo.Conn.PreparexContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "Prepare statement failed")
+	}
+
+	result, err := stmt.ExecContext(ctx, query, topic.Slug, topic.Name, topic.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Updating topic failed")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if rowsAffected != 1 {
+		return nil, errors.Wrap(err, "Weird behavior, rows affected more than 1")
+	}
+
+	return topic, nil
 }
 
 func (repo *topicSQLRepository) Delete(ctx context.Context, id int64) (bool, error) {
-	panic("not implemented")
+	query := "DELETE FROM `topic` WHERE `id` = ?"
+
+	stmt, err := repo.Conn.PreparexContext(ctx, query)
+	if err != nil {
+		return false, errors.Wrap(err, "Prepare statement failed")
+	}
+
+	result, err := stmt.ExecContext(ctx, query, id)
+	if err != nil {
+		return false, errors.Wrap(err, "Deleting topic failed")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if rowsAffected != 1 {
+		return false, errors.Wrap(err, "Weird behavior, rows affected more than 1")
+	}
+
+	return true, nil
 }
