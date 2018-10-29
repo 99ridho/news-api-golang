@@ -2,6 +2,7 @@ package topicrepository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -100,7 +101,7 @@ func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic)
 
 	rowsAffected, err := result.RowsAffected()
 	if rowsAffected != 1 {
-		return nil, errors.Wrap(err, "Weird behavior, rows affected more than 1")
+		return nil, fmt.Errorf("Weird behavior, row affected : %d", rowsAffected)
 	}
 
 	return topic, nil
@@ -121,7 +122,7 @@ func (repo *topicSQLRepository) Delete(ctx context.Context, id int64) (bool, err
 
 	rowsAffected, err := result.RowsAffected()
 	if rowsAffected != 1 {
-		return false, errors.Wrap(err, "Weird behavior, rows affected more than 1")
+		return false, fmt.Errorf("Weird behavior, row affected : %d", rowsAffected)
 	}
 
 	return true, nil
