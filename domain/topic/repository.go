@@ -8,7 +8,7 @@ import (
 
 // TopicRepository is a repository to manage a Topic
 type TopicRepository interface {
-	Fetch(ctx context.Context, cursor, limit int64) ([]*models.Topic, *models.Pagination, error)
+	Fetch(ctx context.Context, cursor, limit int64) ([]*models.Topic, error)
 	FetchById(ctx context.Context, id int64) (*models.Topic, error)
 	FetchBySlug(ctx context.Context, slug string) (*models.Topic, error)
 	Store(ctx context.Context, topic *models.Topic) (int64, error)
