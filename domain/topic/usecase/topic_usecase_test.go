@@ -49,7 +49,7 @@ func TestFetchTopics(t *testing.T) {
 	result, pagination, err := uc.FetchTopics(context.TODO(), 10, 0)
 
 	assert.NoError(t, err)
-	assert.Equal(t, int64(5), pagination.NextCursor)
+	assert.Equal(t, int64(0), pagination.NextCursor)
 	assert.Len(t, result, len(result))
 }
 

@@ -28,8 +28,8 @@ func (uc *topicUseCaseImplementation) FetchTopics(ctx context.Context, limit int
 	pagination := new(models.Pagination)
 	resultLength := len(result)
 
-	if resultLength > 0 {
-		pagination.Limit = limit
+	pagination.Limit = limit
+	if resultLength > 0 && resultLength == int(limit) {
 		pagination.NextCursor = result[resultLength-1].ID
 	}
 
