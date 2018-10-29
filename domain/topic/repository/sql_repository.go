@@ -92,14 +92,14 @@ func (repo *topicSQLRepository) Store(ctx context.Context, topic *models.Topic) 
 }
 
 func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic) (*models.Topic, error) {
-	query := "UPDATE `topic` SET `slug` = ?, `name` = ? WHERE `id` = ?"
+	query := "UPDATE `topic` SET `name` = ? WHERE `id` = ?"
 
 	stmt, err := repo.Conn.PreparexContext(ctx, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "Prepare statement failed")
 	}
 
-	result, err := stmt.ExecContext(ctx, topic.Slug, topic.Name, topic.ID)
+	result, err := stmt.ExecContext(ctx, topic.Name, topic.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "Updating topic failed")
 	}
