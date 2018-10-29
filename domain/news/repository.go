@@ -6,6 +6,7 @@ import (
 	"gitlab.com/99ridho/news-api/models"
 )
 
+// NewsRepository is a repository to manage a News
 type NewsRepository interface {
 	FetchById(ctx context.Context, id int64) (*models.News, error)
 	FetchBySlug(ctx context.Context, slug string) (*models.News, error)
