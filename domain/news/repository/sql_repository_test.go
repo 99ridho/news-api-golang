@@ -77,7 +77,7 @@ func TestFetchNewsByStatus(t *testing.T) {
 	mock.ExpectPrepare(query).ExpectQuery().WillReturnRows(rows)
 
 	status := models.NewsStatusPublished
-	results, err := repo.FetchByStatus(context.Background(), &status)
+	results, err := repo.FetchByStatus(context.Background(), status)
 
 	assert.NoError(t, err)
 	assert.Equal(t, int64(2), results[1].ID)

@@ -1,14 +1,10 @@
 package models
 
 // NewsStatus is enumeration for representing news status
-type NewsStatus byte
+type NewsStatus string
 
 const (
-	NewsStatusPublished NewsStatus = iota
-	NewsStatusDraft
-	NewsStatusDeleted
+	NewsStatusPublished NewsStatus = "published"
+	NewsStatusDraft     NewsStatus = "draft"
+	NewsStatusDeleted   NewsStatus = "deleted"
 )
-
-func (ns NewsStatus) String() string {
-	return []string{"published", "draft", "deleted"}[ns]
-}

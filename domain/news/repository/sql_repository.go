@@ -84,9 +84,9 @@ func (repo *newsSQLRepository) FetchBySlug(ctx context.Context, slug string) (*m
 	return repo.fetchSingle(ctx, query, slug)
 }
 
-func (repo *newsSQLRepository) FetchByStatus(ctx context.Context, status *models.NewsStatus) ([]*models.News, error) {
+func (repo *newsSQLRepository) FetchByStatus(ctx context.Context, status models.NewsStatus) ([]*models.News, error) {
 	query := "SELECT * FROM `news` WHERE `status` = ?"
-	return repo.fetch(ctx, query, status.String())
+	return repo.fetch(ctx, query, status)
 }
 
 func (repo *newsSQLRepository) Store(ctx context.Context, news *models.News) (int64, error) {
