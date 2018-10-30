@@ -3,6 +3,7 @@ package newsrepository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 
@@ -166,7 +167,61 @@ func (repo *newsSQLRepository) Store(ctx context.Context, news *models.News) (in
 }
 
 func (repo *newsSQLRepository) Update(ctx context.Context, news *models.News) (*models.News, error) {
-	panic("not implemented")
+	updateNewsError := repo.transaction(ctx, func(tx *sqlx.Tx) error {
+		updateQuery := "UPDATE `news` SET `author` = ?, `title` = ?, `description` = ?, `content` = ?, `status` = ?, `published_at` = ?, `updated_at` = ? WHERE `id` = ?"
+		stmt, err := tx.PreparexContext(ctx, updateQuery)
+		if err != nil {
+			news = nil
+			return errors.Wrap(err, "Prepare statement failed")
+		}
+
+		updateResult, err := stmt.ExecContext(ctx, news.Author, news.Title, news.Description, news.Content, news.Status, news.PublishedAtNullableSQL, time.Now().Format("2006-01-02 15:04:05"), news.ID)
+		if err != nil {
+			news = nil
+			return errors.Wrap(err, "Can't update news")
+		}
+
+		rowsAffected, err := updateResult.RowsAffected()
+		if rowsAffected != 1 {
+			news = nil
+			return errors.Wrap(err, "Weird behavior, rows affected more 1")
+		}
+
+		if len(news.TopicIDs) > 0 {
+			// delete news topic first
+			deleteTopicQuery := "DELETE FROM `news_topic` WHERE `news_id` = ?"
+			stmt, err := tx.PreparexContext(ctx, deleteTopicQuery)
+			if err != nil {
+				news = nil
+				return errors.Wrap(err, "Prepare statement failed")
+			}
+
+			_, err = stmt.ExecContext(ctx, news.ID)
+			if err != nil {
+				news = nil
+				return errors.Wrap(err, "Can't update news topic")
+			}
+
+			for _, topicID := range news.TopicIDs {
+				insertNewsTopicQuery := "INSERT INTO `news_topic` (`news_id`, `topic_id`) VALUES (?,?)"
+				stmt, err := tx.PreparexContext(ctx, insertNewsTopicQuery)
+				if err != nil {
+					news = nil
+					return errors.Wrap(err, "Prepare statement failed")
+				}
+
+				_, err = stmt.ExecContext(ctx, news.ID, topicID)
+				if err != nil {
+					news = nil
+					return errors.Wrap(err, "Can't update news topic")
+				}
+			}
+		}
+
+		return nil
+	})
+
+	return news, updateNewsError
 }
 
 func (repo *newsSQLRepository) Delete(ctx context.Context, id int64) (bool, error) {
