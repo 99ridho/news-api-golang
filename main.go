@@ -3,8 +3,14 @@ package main
 import (
 	"fmt"
 
+	"gitlab.com/99ridho/news-api/domain/news/repository"
+	"gitlab.com/99ridho/news-api/domain/news/usecase"
+
+	"gitlab.com/99ridho/news-api/domain/news"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"gitlab.com/99ridho/news-api/domain/news/delivery/http"
 	"gitlab.com/99ridho/news-api/domain/topic/delivery/http"
 
 	"gitlab.com/99ridho/news-api/domain/topic/usecase"
@@ -22,6 +28,8 @@ var conn *sqlx.DB
 
 var topicRepo topic.TopicRepository
 var topicUseCase topic.TopicUseCase
+var newsRepo news.NewsRepository
+var newsUseCase news.NewsUseCase
 
 func init() {
 	loadConfigurationFile()
@@ -29,6 +37,8 @@ func init() {
 
 	topicRepo = topicrepository.NewTopicSQLRepository(conn)
 	topicUseCase = topicusecase.NewTopicUseCaseImplementation(topicRepo)
+	newsRepo = newsrepository.NewNewsSQLRepository(conn)
+	newsUseCase = newsusecase.NewNewsUseCaseImplementation(newsRepo)
 }
 
 func loadConfigurationFile() {
@@ -47,6 +57,7 @@ func main() {
 	r.Use(middleware.Logger(), middleware.Recover())
 
 	topichttpdelivery.InitializeTopicHandler(r, topicUseCase)
+	newshttpdelivery.InitializeNewsHandler(r, newsUseCase)
 
 	r.Start(viper.GetString("server.address"))
 }
