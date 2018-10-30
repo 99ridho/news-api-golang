@@ -143,3 +143,25 @@ func TestStoreNews(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, lastId, result)
 }
+
+func TestDeleteNews(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	sqlxMockDb := sqlx.NewDb(db, "sqlmock")
+	repo := newsrepository.NewNewsSQLRepository(sqlxMockDb)
+
+	query := "DELETE FROM \\`news\\`"
+	lastId := int64(1)
+	rowsAffected := int64(1)
+
+	mock.ExpectPrepare(query).ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
+
+	deleted, err := repo.Delete(context.Background(), 1)
+
+	assert.NoError(t, err)
+	assert.Equal(t, true, deleted)
+}

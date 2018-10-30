@@ -157,5 +157,22 @@ func (repo *newsSQLRepository) Update(ctx context.Context, news *models.News) (*
 }
 
 func (repo *newsSQLRepository) Delete(ctx context.Context, id int64) (bool, error) {
-	panic("not implemented")
+	query := "DELETE FROM `news` WHERE `id` = ?"
+
+	stmt, err := repo.Conn.PreparexContext(ctx, query)
+	if err != nil {
+		return false, errors.Wrap(err, "Prepare statement failed")
+	}
+
+	result, err := stmt.ExecContext(ctx, id)
+	if err != nil {
+		return false, errors.Wrap(err, "Deleting news failed")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if rowsAffected != 1 {
+		return false, fmt.Errorf("Weird behavior, row affected : %d", rowsAffected)
+	}
+
+	return true, nil
 }
