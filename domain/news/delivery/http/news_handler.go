@@ -2,6 +2,7 @@ package newshttpdelivery
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,7 +18,7 @@ type NewsHandler struct {
 }
 
 func (h *NewsHandler) FetchNews(c echo.Context) error {
-	params := new(models.FetchNewsParam)
+	params := new(FetchNewsRequest)
 	if err := c.Bind(params); err != nil {
 		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
 			Data:         nil,
@@ -31,13 +32,15 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 		ctx = context.Background()
 	}
 
-	if params.Pagination == nil {
-		params.Pagination = &models.Pagination{Limit: 10, NextCursor: 0}
+	fetchParams := &models.FetchNewsParam{
+		Pagination:   &models.Pagination{Limit: params.Limit, NextCursor: params.NextCursor},
+		Status:       params.Status,
+		TopicIDQuery: params.Topic,
 	}
 
 	topicIDs := make([]int64, 0)
-	if params.TopicIDQuery != "" {
-		ids := strings.Split(params.TopicIDQuery, ",")
+	if fetchParams.TopicIDQuery != "" {
+		ids := strings.Split(fetchParams.TopicIDQuery, ",")
 		for _, strID := range ids {
 			num, err := strconv.Atoi(strID)
 			if err != nil {
@@ -50,9 +53,9 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 			topicIDs = append(topicIDs, int64(num))
 		}
 	}
-	params.TopicIDs = topicIDs
+	fetchParams.TopicIDs = topicIDs
 
-	result, pagination, err := h.usecase.FetchNewsByParams(ctx, params)
+	result, pagination, err := h.usecase.FetchNewsByParams(ctx, fetchParams)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
 			Data:         nil,
@@ -61,6 +64,7 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 		})
 	}
 
+	fmt.Println(params)
 	return c.JSON(200, &models.GeneralResponse{
 		Data: &NewsResponse{
 			News:       result,
