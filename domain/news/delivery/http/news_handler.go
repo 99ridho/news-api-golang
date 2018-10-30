@@ -72,10 +72,45 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 	})
 }
 
+func (h *NewsHandler) DeleteNews(c echo.Context) error {
+	id := c.Param("id")
+	intId, err := strconv.Atoi(id)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Topic ID must int").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	ctx := c.Request().Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	ok, err := h.usecase.DeleteNews(ctx, int64(intId))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Delete topic failed").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	return c.JSON(http.StatusOK, &models.GeneralResponse{
+		Data: &DeleteNewsResponse{
+			IsSuccess: ok,
+		},
+		ErrorMessage: "",
+		Message:      "OK",
+	})
+}
+
 func InitializeNewsHandler(r *echo.Echo, usecase news.NewsUseCase) {
 	handler := &NewsHandler{usecase}
 
 	g := r.Group("/news")
 
 	g.GET("", handler.FetchNews)
+	g.DELETE("/:id", handler.DeleteNews)
 }

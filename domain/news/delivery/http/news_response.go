@@ -8,3 +8,7 @@ type NewsResponse struct {
 	News       []*models.News     `json:"news"`
 	Pagination *models.Pagination `json:"pagination"`
 }
+
+type DeleteNewsResponse struct {
+	IsSuccess bool `json:"is_success"`
+}
