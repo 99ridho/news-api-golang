@@ -8,6 +8,7 @@ import (
 
 // NewsRepository is a repository to manage a News
 type NewsRepository interface {
+	FetchByParams(ctx context.Context, params *models.FetchNewsParam) ([]*models.News, error)
 	FetchById(ctx context.Context, id int64) (*models.News, error)
 	FetchBySlug(ctx context.Context, slug string) (*models.News, error)
 	FetchByStatus(ctx context.Context, status models.NewsStatus) ([]*models.News, error)

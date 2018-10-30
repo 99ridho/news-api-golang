@@ -84,6 +84,38 @@ func TestFetchNewsByStatus(t *testing.T) {
 	assert.Equal(t, int64(3), results[2].ID)
 }
 
+func TestFetchNewsByParams(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	sqlxMockDb := sqlx.NewDb(db, "sqlmock")
+	repo := newsrepository.NewNewsSQLRepository(sqlxMockDb)
+	query := "SELECT n.id, n.author, n.slug, n.title, n.description, n.content, n.status, n.published_at, n.created_at, n.updated_at FROM news n"
+	rows := sqlmock.NewRows([]string{"id", "author", "slug", "title", "description", "content", "status", "published_at", "created_at", "updated_at"}).
+		AddRow(1, "fulan", "kpk-bubar", "KPK Bubar", "lorem", "lorem", "draft", time.Now(), time.Now(), time.Now()).
+		AddRow(2, "fulan", "lion-air-jt610-jatuh1", "Lion Air JT610 jatuh", "lorem", "lorem", "published", time.Now(), time.Now(), time.Now()).
+		AddRow(3, "fulan", "lion-air-jt610-jatuh2", "Lion Air JT610 jatuh", "lorem", "lorem", "published", time.Now(), time.Now(), time.Now()).
+		AddRow(4, "fulan", "lion-air-jt610-jatuh3", "Lion Air JT610 jatuh", "lorem", "lorem", "draft", time.Now(), time.Now(), time.Now())
+
+	mock.ExpectPrepare(query).ExpectQuery().WillReturnRows(rows)
+
+	status := models.NewsStatusPublished
+	params := &models.FetchNewsParam{
+		Pagination: &models.Pagination{Limit: 10, NextCursor: 0},
+		Status:     status,
+		TopicIDs:   []int64{1, 3},
+	}
+	results, err := repo.FetchByParams(context.Background(), params)
+
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), results[0].ID)
+	assert.Equal(t, int64(2), results[1].ID)
+	assert.Equal(t, int64(3), results[2].ID)
+}
+
 func TestStoreNews(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
