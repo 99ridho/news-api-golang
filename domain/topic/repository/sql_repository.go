@@ -107,6 +107,9 @@ func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic)
 	}
 
 	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "Can't check updated rows id")
+	}
 	if rowsAffected != 1 {
 		return nil, fmt.Errorf("Weird behavior, row affected : %d", rowsAffected)
 	}
@@ -128,6 +131,9 @@ func (repo *topicSQLRepository) Delete(ctx context.Context, id int64) (bool, err
 	}
 
 	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrap(err, "Can't check deleted rows id")
+	}
 	if rowsAffected != 1 {
 		return false, fmt.Errorf("Weird behavior, row affected : %d", rowsAffected)
 	}

@@ -182,6 +182,10 @@ func (repo *newsSQLRepository) Update(ctx context.Context, news *models.News) (*
 		}
 
 		rowsAffected, err := updateResult.RowsAffected()
+		if err != nil {
+			news = nil
+			errors.Wrap(err, "Can't check updated rows id")
+		}
 		if rowsAffected != 1 {
 			news = nil
 			return errors.Wrap(err, "Weird behavior, rows affected more 1")
@@ -238,6 +242,9 @@ func (repo *newsSQLRepository) Delete(ctx context.Context, id int64) (bool, erro
 	}
 
 	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrap(err, "Can't check deleted rows id")
+	}
 	if rowsAffected != 1 {
 		return false, fmt.Errorf("Weird behavior, row affected : %d", rowsAffected)
 	}
