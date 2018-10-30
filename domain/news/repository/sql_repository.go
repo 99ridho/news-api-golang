@@ -3,7 +3,8 @@ package newsrepository
 import (
 	"context"
 	"fmt"
-	"strings"
+
+	"github.com/Masterminds/squirrel"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -77,20 +78,29 @@ func (repo *newsSQLRepository) transaction(ctx context.Context, handler func(tx 
 }
 
 func (repo *newsSQLRepository) FetchByParams(ctx context.Context, params *models.FetchNewsParam) ([]*models.News, error) {
-	topicIDsSQLParam := make([]string, 0)
 	queryArgs := make([]interface{}, 0)
 
 	for _, topicID := range params.TopicIDs {
-		topicIDsSQLParam = append(topicIDsSQLParam, "?")
 		queryArgs = append(queryArgs, topicID)
 	}
 
-	query := fmt.Sprintf(`
-	SELECT n.id, n.author, n.slug, n.title, n.description, n.content, n.status, n.published_at, n.created_at, n.updated_at
-		FROM news n
-		JOIN news_topic nt ON n.id = nt.news_id
-		WHERE nt.topic_id IN %s AND n.status = ? AND n.id > ? LIMIT ?`,
-		fmt.Sprintf("(%s)", strings.Join(topicIDsSQLParam, ",")))
+	sq := squirrel.Select("n.id", "n.author", "n.slug", "n.title", "n.description", "n.content", "n.status", "n.published_at", "n.created_at", "n.updated_at").
+		From("news n").
+		Where("n.id > ?", params.Pagination.NextCursor).
+		Limit(uint64(params.Limit))
+
+	if params.Status != "" {
+		sq = sq.Where("n.status = ?", params.Status)
+	}
+
+	if len(params.TopicIDs) > 0 {
+		sq = sq.Join("news_topic nt ON n.id = nt.news_id").Where(squirrel.Eq{"nt.topic_id": params.TopicIDs})
+	}
+
+	query, _, err := sq.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "Can't build query")
+	}
 
 	queryArgs = append(queryArgs, []interface{}{params.Status, params.Pagination.NextCursor, params.Pagination.Limit}...)
 
