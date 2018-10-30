@@ -2,7 +2,6 @@ package newshttpdelivery
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -33,14 +32,13 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 	}
 
 	fetchParams := &models.FetchNewsParam{
-		Pagination:   &models.Pagination{Limit: params.Limit, NextCursor: params.NextCursor},
-		Status:       params.Status,
-		TopicIDQuery: params.Topic,
+		Pagination: &models.Pagination{Limit: params.Limit, NextCursor: params.NextCursor},
+		Status:     params.Status,
 	}
 
 	topicIDs := make([]int64, 0)
-	if fetchParams.TopicIDQuery != "" {
-		ids := strings.Split(fetchParams.TopicIDQuery, ",")
+	if params.Topic != "" {
+		ids := strings.Split(params.Topic, ",")
 		for _, strID := range ids {
 			num, err := strconv.Atoi(strID)
 			if err != nil {
@@ -64,7 +62,6 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 		})
 	}
 
-	fmt.Println(params)
 	return c.JSON(200, &models.GeneralResponse{
 		Data: &NewsResponse{
 			News:       result,
