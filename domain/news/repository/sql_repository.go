@@ -93,7 +93,10 @@ func (repo *newsSQLRepository) FetchByParams(ctx context.Context, params *models
 	}
 
 	if len(params.TopicIDs) > 0 {
-		sq = sq.Join("news_topic nt ON n.id = nt.news_id").Where(squirrel.Eq{"nt.topic_id": params.TopicIDs})
+		sq = sq.Join("news_topic nt ON n.id = nt.news_id").
+			Where(squirrel.Eq{"nt.topic_id": params.TopicIDs}).
+			GroupBy("n.id")
+
 		for _, topicID := range params.TopicIDs {
 			queryArgs = append(queryArgs, topicID)
 		}
