@@ -44,6 +44,6 @@ func (uc *newsUseCaseImplementation) UpdateNews(ctx context.Context, news *model
 	panic("not implemented")
 }
 
-func (uc *newsUseCaseImplementation) DeleteNews(ctx context.Context, news *models.News) (int64, error) {
+func (uc *newsUseCaseImplementation) DeleteNews(ctx context.Context, id int64) (bool, error) {
 	panic("not implemented")
 }
