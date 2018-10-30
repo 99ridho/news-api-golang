@@ -17,19 +17,25 @@ type TopicHandler struct {
 }
 
 func (h *TopicHandler) FetchTopics(c echo.Context) error {
+	req := new(FetchTopicRequest)
 	limit := int64(0)
 	cursor := int64(0)
-	query := c.Request().URL.Query()
-	limitQuery := query.Get("limit")
-	cursorQuery := query.Get("cursor")
+	err := c.Bind(req)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
+			Message:      "Fail",
+		})
+	}
 
 	ctx := c.Request().Context()
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	if limitQuery != "" {
-		limitInt, err := strconv.Atoi(limitQuery)
+	if req.Limit != "" {
+		limitInt, err := strconv.Atoi(req.Limit)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
 				Data:         nil,
@@ -39,8 +45,8 @@ func (h *TopicHandler) FetchTopics(c echo.Context) error {
 		}
 		limit = int64(limitInt)
 	}
-	if cursorQuery != "" {
-		cursorInt, err := strconv.Atoi(cursorQuery)
+	if req.NextCursor != "" {
+		cursorInt, err := strconv.Atoi(req.NextCursor)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
 				Data:         nil,
@@ -71,8 +77,8 @@ func (h *TopicHandler) FetchTopics(c echo.Context) error {
 }
 
 func (h *TopicHandler) InsertTopic(c echo.Context) error {
-	topic := new(models.Topic)
-	err := c.Bind(topic)
+	req := new(MutateTopicRequest)
+	err := c.Bind(req)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
 			Data:         nil,
@@ -86,7 +92,7 @@ func (h *TopicHandler) InsertTopic(c echo.Context) error {
 		ctx = context.Background()
 	}
 
-	result, err := h.UseCase.InsertTopic(ctx, topic)
+	result, err := h.UseCase.InsertTopic(ctx, req.Topic)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
 			Data:         nil,
@@ -115,8 +121,8 @@ func (h *TopicHandler) UpdateTopic(c echo.Context) error {
 		})
 	}
 
-	topic := new(models.Topic)
-	err = c.Bind(topic)
+	req := new(MutateTopicRequest)
+	err = c.Bind(req)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
 			Data:         nil,
@@ -130,8 +136,8 @@ func (h *TopicHandler) UpdateTopic(c echo.Context) error {
 		ctx = context.Background()
 	}
 
-	topic.ID = int64(intId)
-	result, err := h.UseCase.UpdateTopic(ctx, topic)
+	req.ID = int64(intId)
+	result, err := h.UseCase.UpdateTopic(ctx, req.Topic)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
 			Data:         nil,
