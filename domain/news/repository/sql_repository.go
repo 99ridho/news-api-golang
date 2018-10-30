@@ -80,29 +80,29 @@ func (repo *newsSQLRepository) transaction(ctx context.Context, handler func(tx 
 func (repo *newsSQLRepository) FetchByParams(ctx context.Context, params *models.FetchNewsParam) ([]*models.News, error) {
 	queryArgs := make([]interface{}, 0)
 
-	for _, topicID := range params.TopicIDs {
-		queryArgs = append(queryArgs, topicID)
-	}
-
 	sq := squirrel.Select("n.id", "n.author", "n.slug", "n.title", "n.description", "n.content", "n.status", "n.published_at", "n.created_at", "n.updated_at").
 		From("news n").
 		Where("n.id > ?", params.Pagination.NextCursor).
 		Limit(uint64(params.Limit))
 
+	queryArgs = append(queryArgs, params.Pagination.NextCursor)
+
 	if params.Status != "" {
 		sq = sq.Where("n.status = ?", params.Status)
+		queryArgs = append(queryArgs, params.Status)
 	}
 
 	if len(params.TopicIDs) > 0 {
 		sq = sq.Join("news_topic nt ON n.id = nt.news_id").Where(squirrel.Eq{"nt.topic_id": params.TopicIDs})
+		for _, topicID := range params.TopicIDs {
+			queryArgs = append(queryArgs, topicID)
+		}
 	}
 
 	query, _, err := sq.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "Can't build query")
 	}
-
-	queryArgs = append(queryArgs, []interface{}{params.Status, params.Pagination.NextCursor, params.Pagination.Limit}...)
 
 	return repo.fetch(ctx, query, queryArgs...)
 }
