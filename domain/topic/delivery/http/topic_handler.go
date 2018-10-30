@@ -18,8 +18,6 @@ type TopicHandler struct {
 
 func (h *TopicHandler) FetchTopics(c echo.Context) error {
 	req := new(FetchTopicRequest)
-	limit := int64(0)
-	cursor := int64(0)
 	err := c.Bind(req)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
@@ -29,35 +27,16 @@ func (h *TopicHandler) FetchTopics(c echo.Context) error {
 		})
 	}
 
+	if req.Limit == 0 {
+		req.Limit = 10
+	}
+
 	ctx := c.Request().Context()
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	if req.Limit != "" {
-		limitInt, err := strconv.Atoi(req.Limit)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
-				Data:         nil,
-				ErrorMessage: errors.Wrap(err, "Can't convert cursor to int").Error(),
-				Message:      "Fail",
-			})
-		}
-		limit = int64(limitInt)
-	}
-	if req.NextCursor != "" {
-		cursorInt, err := strconv.Atoi(req.NextCursor)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
-				Data:         nil,
-				ErrorMessage: errors.Wrap(err, "Can't convert cursor to int").Error(),
-				Message:      "Fail",
-			})
-		}
-		cursor = int64(cursorInt)
-	}
-
-	topics, pagination, err := h.UseCase.FetchTopics(ctx, limit, cursor)
+	topics, pagination, err := h.UseCase.FetchTopics(ctx, req.Limit, req.NextCursor)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
 			Data:         nil,

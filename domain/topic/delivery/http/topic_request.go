@@ -5,8 +5,8 @@ import (
 )
 
 type FetchTopicRequest struct {
-	Limit      string `query:"limit"`
-	NextCursor string `query:"next_cursor"`
+	Limit      int64 `query:"limit"`
+	NextCursor int64 `query:"next_cursor"`
 }
 
 type MutateTopicRequest struct {
