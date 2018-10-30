@@ -2,6 +2,7 @@ package newsusecase_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -55,4 +56,28 @@ func TestFetchNewsByParams(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(0), pagination.NextCursor)
 	assert.Len(t, result, len(result))
+}
+
+func TestSuccessDeleteNews(t *testing.T) {
+	repoMock := new(newsmocks.NewsRepository)
+
+	repoMock.On("Delete", mock.Anything, mock.AnythingOfType("int64")).Return(true, nil)
+
+	uc := newsusecase.NewNewsUseCaseImplementation(repoMock)
+	result, err := uc.DeleteNews(context.TODO(), 1)
+
+	assert.NoError(t, err)
+	assert.True(t, result)
+}
+
+func TestFailedDeleteTopic(t *testing.T) {
+	repoMock := new(newsmocks.NewsRepository)
+
+	repoMock.On("Delete", mock.Anything, mock.AnythingOfType("int64")).Return(false, errors.New("fail"))
+
+	uc := newsusecase.NewNewsUseCaseImplementation(repoMock)
+	result, err := uc.DeleteNews(context.TODO(), 1)
+
+	assert.Error(t, err)
+	assert.False(t, result)
 }
