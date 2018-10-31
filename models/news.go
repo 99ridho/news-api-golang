@@ -15,9 +15,36 @@ type News struct {
 	Description            string         `json:"description" db:"description"`
 	Content                string         `json:"content" db:"content"`
 	TopicIDs               []int64        `json:"-"`
-	Status                 string         `json:"status" db:"status"`
+	Status                 NewsStatus     `json:"status" db:"status"`
 	PublishedAtNullableSQL mysql.NullTime `json:"-" db:"published_at"`
 	PublishedAt            time.Time      `json:"published_at"`
 	CreatedAt              time.Time      `json:"-" db:"created_at"`
 	UpdatedAt              mysql.NullTime `json:"-" db:"updated_at"`
+}
+
+func (n *News) MarkPublished() {
+	n.Status = NewsStatusPublished
+	n.PublishedAt = time.Now()
+	n.PublishedAtNullableSQL = mysql.NullTime{
+		Time:  n.PublishedAt,
+		Valid: true,
+	}
+}
+
+func (n *News) MarkDrafted() {
+	n.Status = NewsStatusDraft
+	n.PublishedAt = time.Time{}
+	n.PublishedAtNullableSQL = mysql.NullTime{
+		Time:  n.PublishedAt,
+		Valid: false,
+	}
+}
+
+func (n *News) MarkDeleted() {
+	n.Status = NewsStatusDeleted
+	n.PublishedAt = time.Time{}
+	n.PublishedAtNullableSQL = mysql.NullTime{
+		Time:  n.PublishedAt,
+		Valid: false,
+	}
 }
