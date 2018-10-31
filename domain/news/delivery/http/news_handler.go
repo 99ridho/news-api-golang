@@ -12,6 +12,8 @@ import (
 	"gitlab.com/99ridho/news-api/models"
 )
 
+type NewsMutationHandler func(ctx context.Context, n *models.News) (*models.News, error)
+
 type NewsHandler struct {
 	usecase news.NewsUseCase
 }
@@ -29,6 +31,40 @@ func (h *NewsHandler) convertTopicIDParam(param string) ([]int64, error) {
 		}
 	}
 	return topicIDs, nil
+}
+
+func (h *NewsHandler) mutateNews(c echo.Context, mutationHandler NewsMutationHandler) error {
+	req := new(MutateNewsRequest)
+	if err := c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	ctx := c.Request().Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	news := req.News
+	news.TopicIDs = req.NewsTopic
+
+	result, err := mutationHandler(ctx, news)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: err.Error(),
+			Message:      "Fail",
+		})
+	}
+
+	return c.JSON(200, &models.GeneralResponse{
+		Data:         result,
+		ErrorMessage: "",
+		Message:      "OK",
+	})
 }
 
 func (h *NewsHandler) FetchNews(c echo.Context) error {
@@ -81,37 +117,22 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 }
 
 func (h *NewsHandler) InsertNews(c echo.Context) error {
-	req := new(MutateNewsRequest)
-	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
-			Data:         nil,
-			ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
-			Message:      "Fail",
-		})
-	}
+	return h.mutateNews(c, func(ctx context.Context, n *models.News) (*models.News, error) {
+		n.Status = "draft"
+		return h.usecase.InsertNews(ctx, n)
+	})
+}
 
-	ctx := c.Request().Context()
-	if ctx == nil {
-		ctx = context.Background()
-	}
+func (h *NewsHandler) UpdateNews(c echo.Context) error {
+	return h.mutateNews(c, func(ctx context.Context, n *models.News) (*models.News, error) {
+		id := c.Param("id")
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, errors.Wrap(err, "id must integer")
+		}
 
-	news := req.News
-	news.Status = "draft"
-	news.TopicIDs = req.NewsTopic
-
-	result, err := h.usecase.InsertNews(ctx, news)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
-			Data:         nil,
-			ErrorMessage: err.Error(),
-			Message:      "Fail",
-		})
-	}
-
-	return c.JSON(200, &models.GeneralResponse{
-		Data:         result,
-		ErrorMessage: "",
-		Message:      "OK",
+		n.ID = int64(intId)
+		return h.usecase.UpdateNews(ctx, n)
 	})
 }
 
@@ -156,5 +177,6 @@ func InitializeNewsHandler(r *echo.Echo, usecase news.NewsUseCase) {
 
 	g.GET("", handler.FetchNews)
 	g.POST("", handler.InsertNews)
+	g.PUT("/:id", handler.UpdateNews)
 	g.DELETE("/:id", handler.DeleteNews)
 }
