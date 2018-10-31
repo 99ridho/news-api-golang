@@ -146,17 +146,27 @@ func (repo *newsSQLRepository) Store(ctx context.Context, news *models.News) (in
 			return errors.Wrap(err, "Insert news result have an error")
 		}
 
+		insertNewsTopicQueryBuilder := squirrel.Insert("news_topic").Columns("news_id", "topic_id")
+		insertNewsTopicArgs := make([]interface{}, 0)
 		for _, topicID := range news.TopicIDs {
-			insertNewsTopicQuery := "INSERT INTO `news_topic` (`news_id`, `topic_id`) VALUES (?,?)"
-			stmt, err := tx.PreparexContext(ctx, insertNewsTopicQuery)
-			if err != nil {
-				return errors.Wrap(err, "Prepare statement failed")
-			}
+			insertNewsTopicQueryBuilder = insertNewsTopicQueryBuilder.Values(newsID, topicID)
+			insertNewsTopicArgs = append(insertNewsTopicArgs, newsID)
+			insertNewsTopicArgs = append(insertNewsTopicArgs, topicID)
+		}
 
-			_, err = stmt.ExecContext(ctx, newsID, topicID)
-			if err != nil {
-				return errors.Wrap(err, "Can't insert news topic")
-			}
+		insertNewsTopicQuery, _, err := insertNewsTopicQueryBuilder.ToSql()
+		if err != nil {
+			return errors.Wrap(err, "Can't build insert news topic query")
+		}
+
+		stmt, err = tx.PreparexContext(ctx, insertNewsTopicQuery)
+		if err != nil {
+			return errors.Wrap(err, "Prepare statement failed")
+		}
+
+		_, err = stmt.ExecContext(ctx, insertNewsTopicArgs...)
+		if err != nil {
+			return errors.Wrap(err, "Can't insert news topic")
 		}
 
 		newsID = id
@@ -206,19 +216,27 @@ func (repo *newsSQLRepository) Update(ctx context.Context, news *models.News) (*
 				return errors.Wrap(err, "Can't update news topic")
 			}
 
+			insertNewsTopicQueryBuilder := squirrel.Insert("news_topic").Columns("news_id", "topic_id")
+			insertNewsTopicArgs := make([]interface{}, 0)
 			for _, topicID := range news.TopicIDs {
-				insertNewsTopicQuery := "INSERT INTO `news_topic` (`news_id`, `topic_id`) VALUES (?,?)"
-				stmt, err := tx.PreparexContext(ctx, insertNewsTopicQuery)
-				if err != nil {
-					news = nil
-					return errors.Wrap(err, "Prepare statement failed")
-				}
+				insertNewsTopicQueryBuilder = insertNewsTopicQueryBuilder.Values(news.ID, topicID)
+				insertNewsTopicArgs = append(insertNewsTopicArgs, news.ID)
+				insertNewsTopicArgs = append(insertNewsTopicArgs, topicID)
+			}
 
-				_, err = stmt.ExecContext(ctx, news.ID, topicID)
-				if err != nil {
-					news = nil
-					return errors.Wrap(err, "Can't update news topic")
-				}
+			insertNewsTopicQuery, _, err := insertNewsTopicQueryBuilder.ToSql()
+			if err != nil {
+				return errors.Wrap(err, "Can't build insert news topic query")
+			}
+
+			stmt, err = tx.PreparexContext(ctx, insertNewsTopicQuery)
+			if err != nil {
+				return errors.Wrap(err, "Prepare statement failed")
+			}
+
+			_, err = stmt.ExecContext(ctx, insertNewsTopicArgs...)
+			if err != nil {
+				return errors.Wrap(err, "Can't insert news topic")
 			}
 		}
 

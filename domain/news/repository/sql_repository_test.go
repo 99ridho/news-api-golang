@@ -131,12 +131,12 @@ func TestStoreNews(t *testing.T) {
 
 	news := &models.News{
 		Title:    "lorem",
-		TopicIDs: []int64{1},
+		TopicIDs: []int64{1, 3},
 	}
 
 	mock.ExpectBegin()
 	mock.ExpectPrepare(query).ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
-	mock.ExpectPrepare("INSERT INTO \\`news_topic\\`").ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
+	mock.ExpectPrepare("INSERT INTO news_topic \\(news_id,topic_id\\) VALUES \\(\\?,\\?\\),\\(\\?,\\?\\)").ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
 	mock.ExpectCommit()
 
 	result, err := repo.Store(context.Background(), news)
