@@ -15,7 +15,7 @@ import (
 type NewsMutationHandler func(ctx context.Context, n *models.News) (*models.News, error)
 
 type NewsHandler struct {
-	usecase news.NewsUseCase
+	UseCase news.NewsUseCase
 }
 
 func (h *NewsHandler) convertTopicIDParam(param string) ([]int64, error) {
@@ -97,7 +97,7 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 	}
 	fetchParams.TopicIDs = topicIDs
 
-	result, pagination, err := h.usecase.FetchNewsByParams(ctx, fetchParams)
+	result, pagination, err := h.UseCase.FetchNewsByParams(ctx, fetchParams)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
 			Data:         nil,
@@ -119,7 +119,7 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 func (h *NewsHandler) InsertNews(c echo.Context) error {
 	return h.mutateNews(c, func(ctx context.Context, n *models.News) (*models.News, error) {
 		n.Status = "draft"
-		return h.usecase.InsertNews(ctx, n)
+		return h.UseCase.InsertNews(ctx, n)
 	})
 }
 
@@ -132,7 +132,7 @@ func (h *NewsHandler) UpdateNews(c echo.Context) error {
 		}
 
 		n.ID = int64(intId)
-		return h.usecase.UpdateNews(ctx, n)
+		return h.UseCase.UpdateNews(ctx, n)
 	})
 }
 
@@ -152,7 +152,7 @@ func (h *NewsHandler) DeleteNews(c echo.Context) error {
 		ctx = context.Background()
 	}
 
-	ok, err := h.usecase.DeleteNews(ctx, int64(intId))
+	ok, err := h.UseCase.DeleteNews(ctx, int64(intId))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
 			Data:         nil,
