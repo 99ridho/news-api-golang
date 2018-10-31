@@ -121,7 +121,7 @@ func TestUpdateTopic(t *testing.T) {
 		Slug: "motogp",
 	}
 
-	query := "UPDATE \\`topic\\`"
+	query := "UPDATE topic SET updated_at = \\?, slug = \\?, name = \\? WHERE id = \\?"
 	lastId := int64(3)
 	rowsAffected := int64(1)
 

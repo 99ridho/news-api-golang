@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Masterminds/squirrel"
+
 	"github.com/pkg/errors"
 
 	"github.com/jmoiron/sqlx"
@@ -94,7 +96,20 @@ func (repo *topicSQLRepository) Store(ctx context.Context, topic *models.Topic) 
 }
 
 func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic) (*models.Topic, error) {
-	query := "UPDATE `topic` SET `slug` = ?, `name` = ? ,`updated_at` = ? WHERE `id` = ?"
+	sq := squirrel.Update("topic").Set("updated_at", time.Now().Format("2006-01-02 15:04:05")).Where("id = ?", topic.ID)
+
+	if topic.Slug != "" {
+		sq = sq.Set("slug", topic.Slug)
+	}
+
+	if topic.Slug != "" {
+		sq = sq.Set("name", topic.Name)
+	}
+
+	query, _, err := sq.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "can't build update query")
+	}
 
 	stmt, err := repo.Conn.PreparexContext(ctx, query)
 	if err != nil {
