@@ -118,8 +118,9 @@ func TestSuccessUpdateNews(t *testing.T) {
 	repoMock := new(newsmocks.NewsRepository)
 
 	n := &models.News{
-		ID:   1,
-		Slug: "halo",
+		ID:     1,
+		Slug:   "halo",
+		Status: models.NewsStatusPublished,
 	}
 
 	repoMock.On("Update", mock.Anything, mock.AnythingOfType("*models.News")).Return(n, nil)
@@ -137,8 +138,9 @@ func TestFailUpdateNews(t *testing.T) {
 	repoMock.On("Update", mock.Anything, mock.AnythingOfType("*models.News")).Return(nil, errors.New("fail"))
 
 	n := &models.News{
-		ID:   1,
-		Slug: "halo",
+		ID:     1,
+		Slug:   "halo",
+		Status: models.NewsStatusPublished,
 	}
 
 	uc := newsusecase.NewNewsUseCaseImplementation(repoMock)

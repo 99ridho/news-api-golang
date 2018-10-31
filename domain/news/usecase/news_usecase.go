@@ -51,6 +51,15 @@ func (uc *newsUseCaseImplementation) InsertNews(ctx context.Context, news *model
 }
 
 func (uc *newsUseCaseImplementation) UpdateNews(ctx context.Context, news *models.News) (*models.News, error) {
+	switch news.Status {
+	case models.NewsStatusPublished:
+		news.MarkPublished()
+	case models.NewsStatusDraft:
+		news.MarkDrafted()
+	case models.NewsStatusDeleted:
+		news.MarkDeleted()
+	}
+
 	return uc.repo.Update(ctx, news)
 }
 
