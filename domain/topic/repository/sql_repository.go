@@ -106,7 +106,7 @@ func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic)
 		updateArgs = append(updateArgs, topic.Slug)
 	}
 
-	if topic.Slug != "" {
+	if topic.Name != "" {
 		sq = sq.Set("name", topic.Name)
 		updateArgs = append(updateArgs, topic.Name)
 	}
