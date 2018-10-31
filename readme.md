@@ -2,6 +2,10 @@
 
 This repository is intended to learn how to implement Clean Architecture in Go & also for assignment purposes.
 
+### Docs
+
+See [here](https://newsapi9.docs.apiary.io/#).
+
 ### How to develop & run
 
 * Go get this repo
