@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/jmoiron/sqlx"
@@ -116,16 +118,24 @@ func TestUpdateTopic(t *testing.T) {
 	sqlxMockDb := sqlx.NewDb(db, "sqlmock")
 	repo := topicrepository.NewTopicSQLRepository(sqlxMockDb)
 
+	now := time.Now()
 	topic := &models.Topic{
-		Name: "motogp",
-		Slug: "motogp",
+		Name:      "motogp",
+		Slug:      "motogp",
+		ID:        1,
+		CreatedAt: now,
+		UpdatedAt: mysql.NullTime{Time: now, Valid: true},
 	}
+
+	rows := sqlmock.NewRows([]string{"id", "slug", "name", "created_at", "updated_at"}).
+		AddRow(1, "motogp", "motogp", now, now)
 
 	query := "UPDATE topic SET updated_at = \\?, slug = \\?, name = \\? WHERE id = \\?"
 	lastId := int64(3)
 	rowsAffected := int64(1)
 
 	mock.ExpectPrepare(query).ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
+	mock.ExpectPrepare("SELECT \\* FROM \\`topic\\`").ExpectQuery().WillReturnRows(rows)
 
 	newTopic, err := repo.Update(context.Background(), topic)
 

@@ -129,7 +129,7 @@ func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic)
 		return nil, fmt.Errorf("Weird behavior, row affected : %d", rowsAffected)
 	}
 
-	return topic, nil
+	return repo.FetchById(ctx, topic.ID)
 }
 
 func (repo *topicSQLRepository) Delete(ctx context.Context, id int64) (bool, error) {
