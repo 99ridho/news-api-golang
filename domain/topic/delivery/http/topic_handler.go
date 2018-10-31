@@ -38,7 +38,7 @@ func (h *TopicHandler) mutateTopic(c echo.Context, mutationHandler TopicMutation
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
 			Data:         nil,
-			ErrorMessage: errors.Wrap(err, "Insert topic failed").Error(),
+			ErrorMessage: err.Error(),
 			Message:      "Fail",
 		})
 	}
