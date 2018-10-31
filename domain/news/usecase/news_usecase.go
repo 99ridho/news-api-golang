@@ -51,7 +51,7 @@ func (uc *newsUseCaseImplementation) InsertNews(ctx context.Context, news *model
 }
 
 func (uc *newsUseCaseImplementation) UpdateNews(ctx context.Context, news *models.News) (*models.News, error) {
-	panic("not implemented")
+	return uc.repo.Update(ctx, news)
 }
 
 func (uc *newsUseCaseImplementation) DeleteNews(ctx context.Context, id int64) (bool, error) {

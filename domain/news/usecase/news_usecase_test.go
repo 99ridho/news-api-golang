@@ -113,3 +113,37 @@ func TestFailInsertNews(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 }
+
+func TestSuccessUpdateNews(t *testing.T) {
+	repoMock := new(newsmocks.NewsRepository)
+
+	n := &models.News{
+		ID:   1,
+		Slug: "halo",
+	}
+
+	repoMock.On("Update", mock.Anything, mock.AnythingOfType("*models.News")).Return(n, nil)
+
+	uc := newsusecase.NewNewsUseCaseImplementation(repoMock)
+	result, err := uc.UpdateNews(context.TODO(), n)
+
+	assert.NoError(t, err)
+	assert.Equal(t, n, result)
+}
+
+func TestFailUpdateNews(t *testing.T) {
+	repoMock := new(newsmocks.NewsRepository)
+
+	repoMock.On("Update", mock.Anything, mock.AnythingOfType("*models.News")).Return(nil, errors.New("fail"))
+
+	n := &models.News{
+		ID:   1,
+		Slug: "halo",
+	}
+
+	uc := newsusecase.NewNewsUseCaseImplementation(repoMock)
+	result, err := uc.UpdateNews(context.TODO(), n)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
