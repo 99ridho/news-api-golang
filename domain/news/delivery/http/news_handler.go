@@ -16,6 +16,21 @@ type NewsHandler struct {
 	usecase news.NewsUseCase
 }
 
+func (h *NewsHandler) convertTopicIDParam(param string) ([]int64, error) {
+	topicIDs := make([]int64, 0)
+	if param != "" {
+		ids := strings.Split(param, ",")
+		for _, strID := range ids {
+			num, err := strconv.Atoi(strID)
+			if err != nil {
+				return nil, errors.Wrap(err, "Request data invalid")
+			}
+			topicIDs = append(topicIDs, int64(num))
+		}
+	}
+	return topicIDs, nil
+}
+
 func (h *NewsHandler) FetchNews(c echo.Context) error {
 	params := new(FetchNewsRequest)
 	if err := c.Bind(params); err != nil {
@@ -36,20 +51,13 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 		Status:     params.Status,
 	}
 
-	topicIDs := make([]int64, 0)
-	if params.Topic != "" {
-		ids := strings.Split(params.Topic, ",")
-		for _, strID := range ids {
-			num, err := strconv.Atoi(strID)
-			if err != nil {
-				return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
-					Data:         nil,
-					ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
-					Message:      "Fail",
-				})
-			}
-			topicIDs = append(topicIDs, int64(num))
-		}
+	topicIDs, err := h.convertTopicIDParam(params.Topic)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: err.Error(),
+			Message:      "Fail",
+		})
 	}
 	fetchParams.TopicIDs = topicIDs
 
