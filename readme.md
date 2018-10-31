@@ -2,7 +2,7 @@
 
 This repository is intended to learn how to implement Clean Architecture in Go & also for assignment purposes.
 
-### How to develop
+### How to develop & run
 
 * Go get this repo
 
