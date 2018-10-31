@@ -3,6 +3,8 @@ package newsusecase
 import (
 	"context"
 
+	"github.com/gosimple/slug"
+
 	"gitlab.com/99ridho/news-api/domain/news"
 	"gitlab.com/99ridho/news-api/models"
 )
@@ -37,7 +39,15 @@ func (uc *newsUseCaseImplementation) FetchNewsByParams(ctx context.Context, para
 }
 
 func (uc *newsUseCaseImplementation) InsertNews(ctx context.Context, news *models.News) (*models.News, error) {
-	panic("not implemented")
+	news.Slug = slug.Make(news.Title)
+
+	id, err := uc.repo.Store(ctx, news)
+	if err != nil {
+		return nil, err
+	}
+
+	news.ID = id
+	return news, nil
 }
 
 func (uc *newsUseCaseImplementation) UpdateNews(ctx context.Context, news *models.News) (*models.News, error) {
