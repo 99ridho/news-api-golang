@@ -116,7 +116,7 @@ func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic)
 		return nil, errors.Wrap(err, "Prepare statement failed")
 	}
 
-	result, err := stmt.ExecContext(ctx, topic.Slug, topic.Name, time.Now().Format("2006-01-02 15:04:05"), topic.ID)
+	result, err := stmt.ExecContext(ctx, time.Now().Format("2006-01-02 15:04:05"), topic.Slug, topic.Name, topic.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "Updating topic failed")
 	}
