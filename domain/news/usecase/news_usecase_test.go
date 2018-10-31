@@ -70,7 +70,7 @@ func TestSuccessDeleteNews(t *testing.T) {
 	assert.True(t, result)
 }
 
-func TestFailedDeleteTopic(t *testing.T) {
+func TestFailedDeleteNews(t *testing.T) {
 	repoMock := new(newsmocks.NewsRepository)
 
 	repoMock.On("Delete", mock.Anything, mock.AnythingOfType("int64")).Return(false, errors.New("fail"))
@@ -80,4 +80,36 @@ func TestFailedDeleteTopic(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.False(t, result)
+}
+
+func TestSuccessInsertNews(t *testing.T) {
+	repoMock := new(newsmocks.NewsRepository)
+	repoMock.On("Store", mock.Anything, mock.AnythingOfType("*models.News")).Return(int64(1), nil)
+
+	n := &models.News{
+		ID:   1,
+		Slug: "halo",
+	}
+
+	uc := newsusecase.NewNewsUseCaseImplementation(repoMock)
+	result, err := uc.InsertNews(context.TODO(), n)
+
+	assert.NoError(t, err)
+	assert.Equal(t, n, result)
+}
+
+func TestFailInsertNews(t *testing.T) {
+	repoMock := new(newsmocks.NewsRepository)
+	repoMock.On("Store", mock.Anything, mock.AnythingOfType("*models.News")).Return(int64(0), errors.New("fail"))
+
+	n := &models.News{
+		ID:   1,
+		Slug: "halo",
+	}
+
+	uc := newsusecase.NewNewsUseCaseImplementation(repoMock)
+	result, err := uc.InsertNews(context.TODO(), n)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
 }
