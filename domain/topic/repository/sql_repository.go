@@ -98,14 +98,20 @@ func (repo *topicSQLRepository) Store(ctx context.Context, topic *models.Topic) 
 func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic) (*models.Topic, error) {
 	sq := squirrel.Update("topic").Set("updated_at", time.Now().Format("2006-01-02 15:04:05")).Where("id = ?", topic.ID)
 
+	updateArgs := make([]interface{}, 0)
+	updateArgs = append(updateArgs, time.Now().Format("2006-01-02 15:04:05"))
+
 	if topic.Slug != "" {
 		sq = sq.Set("slug", topic.Slug)
+		updateArgs = append(updateArgs, topic.Slug)
 	}
 
 	if topic.Slug != "" {
 		sq = sq.Set("name", topic.Name)
+		updateArgs = append(updateArgs, topic.Name)
 	}
 
+	updateArgs = append(updateArgs, topic.ID)
 	query, _, err := sq.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "can't build update query")
@@ -116,7 +122,7 @@ func (repo *topicSQLRepository) Update(ctx context.Context, topic *models.Topic)
 		return nil, errors.Wrap(err, "Prepare statement failed")
 	}
 
-	result, err := stmt.ExecContext(ctx, time.Now().Format("2006-01-02 15:04:05"), topic.Slug, topic.Name, topic.ID)
+	result, err := stmt.ExecContext(ctx, updateArgs...)
 	if err != nil {
 		return nil, errors.Wrap(err, "Updating topic failed")
 	}
