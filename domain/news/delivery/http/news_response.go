@@ -12,3 +12,7 @@ type NewsResponse struct {
 type DeleteNewsResponse struct {
 	IsSuccess bool `json:"is_success"`
 }
+
+type MutateNewsResponse struct {
+	News *models.News `json:"news"`
+}

@@ -61,7 +61,9 @@ func (h *NewsHandler) mutateNews(c echo.Context, mutationHandler NewsMutationHan
 	}
 
 	return c.JSON(200, &models.GeneralResponse{
-		Data:         result,
+		Data: &MutateNewsResponse{
+			News: result,
+		},
 		ErrorMessage: "",
 		Message:      "OK",
 	})
