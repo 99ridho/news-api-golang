@@ -158,17 +158,22 @@ func TestUpdateNews(t *testing.T) {
 	rowsAffected := int64(1)
 
 	news := &models.News{
-		Title:    "lorem",
+		Title:    "KPK Bubar",
 		TopicIDs: []int64{},
 	}
 
+	now := time.Now()
+	rows := sqlmock.NewRows([]string{"id", "author", "slug", "title", "description", "content", "status", "published_at", "created_at", "updated_at"}).
+		AddRow(1, "fulan", "kpk-bubar", "KPK Bubar", "lorem", "lorem", "draft", now, now, now)
+
 	mock.ExpectBegin()
 	mock.ExpectPrepare(query).ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
+	mock.ExpectPrepare("SELECT \\* FROM \\`news\\`").ExpectQuery().WillReturnRows(rows)
 	mock.ExpectCommit()
 
-	_, err = repo.Update(context.Background(), news)
+	result, err := repo.Update(context.Background(), news)
 	assert.NoError(t, err)
-	assert.Equal(t, "lorem", news.Title)
+	assert.Equal(t, news.Title, result.Title)
 }
 
 func TestDeleteNews(t *testing.T) {

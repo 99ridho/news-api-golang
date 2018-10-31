@@ -177,7 +177,7 @@ func (repo *newsSQLRepository) Store(ctx context.Context, news *models.News) (in
 }
 
 func (repo *newsSQLRepository) Update(ctx context.Context, news *models.News) (*models.News, error) {
-	updateNewsError := repo.transaction(ctx, func(tx *sqlx.Tx) error {
+	repo.transaction(ctx, func(tx *sqlx.Tx) error {
 		updateQuery := "UPDATE `news` SET `author` = ?, `title` = ?, `description` = ?, `content` = ?, `status` = ?, `published_at` = ?, `updated_at` = ? WHERE `id` = ?"
 		stmt, err := tx.PreparexContext(ctx, updateQuery)
 		if err != nil {
@@ -243,7 +243,7 @@ func (repo *newsSQLRepository) Update(ctx context.Context, news *models.News) (*
 		return nil
 	})
 
-	return news, updateNewsError
+	return repo.FetchById(ctx, news.ID)
 }
 
 func (repo *newsSQLRepository) Delete(ctx context.Context, id int64) (bool, error) {
