@@ -153,11 +153,12 @@ func TestUpdateNews(t *testing.T) {
 
 	sqlxMockDb := sqlx.NewDb(db, "sqlmock")
 	repo := newsrepository.NewNewsSQLRepository(sqlxMockDb)
-	query := "UPDATE \\`news\\`"
+	query := "UPDATE news SET title = \\?, updated_at = \\? WHERE id = \\?"
 	lastId := int64(3)
 	rowsAffected := int64(1)
 
 	news := &models.News{
+		ID:       3,
 		Title:    "KPK Bubar",
 		TopicIDs: []int64{},
 	}
@@ -168,8 +169,8 @@ func TestUpdateNews(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectPrepare(query).ExpectExec().WillReturnResult(sqlmock.NewResult(lastId, rowsAffected))
-	mock.ExpectPrepare("SELECT \\* FROM \\`news\\`").ExpectQuery().WillReturnRows(rows)
 	mock.ExpectCommit()
+	mock.ExpectPrepare("SELECT \\* FROM \\`news\\`").ExpectQuery().WillReturnRows(rows)
 
 	result, err := repo.Update(context.Background(), news)
 	assert.NoError(t, err)

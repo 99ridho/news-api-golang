@@ -178,14 +178,57 @@ func (repo *newsSQLRepository) Store(ctx context.Context, news *models.News) (in
 
 func (repo *newsSQLRepository) Update(ctx context.Context, news *models.News) (*models.News, error) {
 	updateError := repo.transaction(ctx, func(tx *sqlx.Tx) error {
-		updateQuery := "UPDATE `news` SET `author` = ?, `title` = ?, `description` = ?, `content` = ?, `status` = ?, `published_at` = ?, `updated_at` = ? WHERE `id` = ?"
+		updateArgs := make([]interface{}, 0)
+		updateQueryBuilder := squirrel.Update("news").Where("id = ?", news.ID)
+
+		if news.Author != "" {
+			updateQueryBuilder = updateQueryBuilder.Set("author", news.Author)
+			updateArgs = append(updateArgs, news.Author)
+		}
+
+		if news.Title != "" {
+			updateQueryBuilder = updateQueryBuilder.Set("title", news.Title)
+			updateArgs = append(updateArgs, news.Title)
+		}
+
+		if news.Description != "" {
+			updateQueryBuilder = updateQueryBuilder.Set("description", news.Description)
+			updateArgs = append(updateArgs, news.Description)
+		}
+
+		if news.Content != "" {
+			updateQueryBuilder = updateQueryBuilder.Set("content", news.Content)
+			updateArgs = append(updateArgs, news.Content)
+		}
+
+		if news.Status != "" {
+			updateQueryBuilder = updateQueryBuilder.Set("status", news.Status)
+			updateArgs = append(updateArgs, news.Status)
+		}
+
+		if news.PublishedAtNullableSQL.Valid {
+			updateQueryBuilder = updateQueryBuilder.Set("published_at", news.PublishedAtNullableSQL)
+			updateArgs = append(updateArgs, news.PublishedAtNullableSQL)
+		}
+
+		now := time.Now()
+		updateQueryBuilder = updateQueryBuilder.Set("updated_at", now.Format("2006-01-02 15:04:05"))
+		updateArgs = append(updateArgs, now.Format("2006-01-02 15:04:05"))
+		updateArgs = append(updateArgs, news.ID)
+
+		updateQuery, _, err := updateQueryBuilder.ToSql()
+		if err != nil {
+			news = nil
+			return errors.Wrap(err, "Build query failed")
+		}
+
 		stmt, err := tx.PreparexContext(ctx, updateQuery)
 		if err != nil {
 			news = nil
 			return errors.Wrap(err, "Prepare statement failed")
 		}
 
-		updateResult, err := stmt.ExecContext(ctx, news.Author, news.Title, news.Description, news.Content, news.Status, news.PublishedAtNullableSQL, time.Now().Format("2006-01-02 15:04:05"), news.ID)
+		updateResult, err := stmt.ExecContext(ctx, updateArgs...)
 		if err != nil {
 			news = nil
 			return errors.Wrap(err, "Can't update news")
