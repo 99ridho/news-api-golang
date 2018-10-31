@@ -80,6 +80,40 @@ func (h *NewsHandler) FetchNews(c echo.Context) error {
 	})
 }
 
+func (h *NewsHandler) InsertNews(c echo.Context) error {
+	req := new(MutateNewsRequest)
+	if err := c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	ctx := c.Request().Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	news := req.News
+	news.TopicIDs = req.NewsTopic
+
+	result, err := h.usecase.InsertNews(ctx, news)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: err.Error(),
+			Message:      "Fail",
+		})
+	}
+
+	return c.JSON(200, &models.GeneralResponse{
+		Data:         result,
+		ErrorMessage: "",
+		Message:      "OK",
+	})
+}
+
 func (h *NewsHandler) DeleteNews(c echo.Context) error {
 	id := c.Param("id")
 	intId, err := strconv.Atoi(id)
@@ -120,5 +154,6 @@ func InitializeNewsHandler(r *echo.Echo, usecase news.NewsUseCase) {
 	g := r.Group("/news")
 
 	g.GET("", handler.FetchNews)
+	g.POST("", handler.InsertNews)
 	g.DELETE("/:id", handler.DeleteNews)
 }

@@ -10,3 +10,8 @@ type FetchNewsRequest struct {
 	NextCursor int64             `query:"next_cursor"`
 	Status     models.NewsStatus `query:"status"`
 }
+
+type MutateNewsRequest struct {
+	News      *models.News `json:"news"`
+	NewsTopic []int64      `json:"topics"`
+}
