@@ -13,6 +13,12 @@ This repository is intended to learn how to implement Clean Architecture in Go &
 * Make the database
 * Change the `config.json` file to your own setting
 * Run the migration using [`goose`](https://github.com/pressly/goose).
+* Install dependency using `dep`
+
+    ```
+    dep ensure
+    ```
+
 * Then
 
     ```
