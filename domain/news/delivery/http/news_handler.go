@@ -96,6 +96,7 @@ func (h *NewsHandler) InsertNews(c echo.Context) error {
 	}
 
 	news := req.News
+	news.Status = "draft"
 	news.TopicIDs = req.NewsTopic
 
 	result, err := h.usecase.InsertNews(ctx, news)
