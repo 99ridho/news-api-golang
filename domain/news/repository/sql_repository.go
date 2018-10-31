@@ -149,8 +149,8 @@ func (repo *newsSQLRepository) Store(ctx context.Context, news *models.News) (in
 		insertNewsTopicQueryBuilder := squirrel.Insert("news_topic").Columns("news_id", "topic_id")
 		insertNewsTopicArgs := make([]interface{}, 0)
 		for _, topicID := range news.TopicIDs {
-			insertNewsTopicQueryBuilder = insertNewsTopicQueryBuilder.Values(newsID, topicID)
-			insertNewsTopicArgs = append(insertNewsTopicArgs, newsID)
+			insertNewsTopicQueryBuilder = insertNewsTopicQueryBuilder.Values(id, topicID)
+			insertNewsTopicArgs = append(insertNewsTopicArgs, id)
 			insertNewsTopicArgs = append(insertNewsTopicArgs, topicID)
 		}
 
