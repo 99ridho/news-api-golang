@@ -41,6 +41,10 @@ func (repo *newsSQLRepository) fetch(ctx context.Context, query string, args ...
 			return nil, err
 		}
 
+		if news.PublishedAtNullableSQL.Valid {
+			news.PublishedAt = news.PublishedAtNullableSQL.Time
+		}
+
 		newsList = append(newsList, news)
 	}
 
