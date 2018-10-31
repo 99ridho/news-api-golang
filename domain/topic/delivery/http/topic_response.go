@@ -7,12 +7,8 @@ type FetchTopicResponse struct {
 	Pagination *models.Pagination `json:"pagination"`
 }
 
-type InsertTopicResponse struct {
-	Topic *models.Topic `json:"inserted_topic"`
-}
-
-type UpdateTopicResponse struct {
-	Topic *models.Topic `json:"updated_topic"`
+type TopicMutationResponse struct {
+	Topic *models.Topic `json:"topic"`
 }
 
 type DeleteTopicResponse struct {

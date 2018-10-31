@@ -12,8 +12,44 @@ import (
 	"gitlab.com/99ridho/news-api/models"
 )
 
+type TopicMutationHandler func(ctx context.Context, t *models.Topic) (*models.Topic, error)
+
 type TopicHandler struct {
 	UseCase topic.TopicUseCase
+}
+
+func (h *TopicHandler) mutateTopic(c echo.Context, mutationHandler TopicMutationHandler) error {
+	req := new(MutateTopicRequest)
+	err := c.Bind(req)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	ctx := c.Request().Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	result, err := mutationHandler(ctx, req.Topic)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
+			Data:         nil,
+			ErrorMessage: errors.Wrap(err, "Insert topic failed").Error(),
+			Message:      "Fail",
+		})
+	}
+
+	return c.JSON(http.StatusOK, &models.GeneralResponse{
+		Data: &TopicMutationResponse{
+			Topic: result,
+		},
+		ErrorMessage: "",
+		Message:      "OK",
+	})
 }
 
 func (h *TopicHandler) FetchTopics(c echo.Context) error {
@@ -56,81 +92,21 @@ func (h *TopicHandler) FetchTopics(c echo.Context) error {
 }
 
 func (h *TopicHandler) InsertTopic(c echo.Context) error {
-	req := new(MutateTopicRequest)
-	err := c.Bind(req)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
-			Data:         nil,
-			ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
-			Message:      "Fail",
-		})
-	}
-
-	ctx := c.Request().Context()
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
-	result, err := h.UseCase.InsertTopic(ctx, req.Topic)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
-			Data:         nil,
-			ErrorMessage: errors.Wrap(err, "Insert topic failed").Error(),
-			Message:      "Fail",
-		})
-	}
-
-	return c.JSON(http.StatusOK, &models.GeneralResponse{
-		Data: &InsertTopicResponse{
-			Topic: result,
-		},
-		ErrorMessage: "",
-		Message:      "OK",
+	return h.mutateTopic(c, func(ctx context.Context, t *models.Topic) (*models.Topic, error) {
+		return h.UseCase.InsertTopic(ctx, t)
 	})
 }
 
 func (h *TopicHandler) UpdateTopic(c echo.Context) error {
-	id := c.Param("id")
-	intId, err := strconv.Atoi(id)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
-			Data:         nil,
-			ErrorMessage: errors.Wrap(err, "Topic ID must int").Error(),
-			Message:      "Fail",
-		})
-	}
+	return h.mutateTopic(c, func(ctx context.Context, t *models.Topic) (*models.Topic, error) {
+		id := c.Param("id")
+		intId, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, errors.Wrap(err, "Topic ID must int")
+		}
 
-	req := new(MutateTopicRequest)
-	err = c.Bind(req)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, &models.GeneralResponse{
-			Data:         nil,
-			ErrorMessage: errors.Wrap(err, "Request data invalid").Error(),
-			Message:      "Fail",
-		})
-	}
-
-	ctx := c.Request().Context()
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
-	req.ID = int64(intId)
-	result, err := h.UseCase.UpdateTopic(ctx, req.Topic)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &models.GeneralResponse{
-			Data:         nil,
-			ErrorMessage: errors.Wrap(err, "Update topic failed").Error(),
-			Message:      "Fail",
-		})
-	}
-
-	return c.JSON(http.StatusOK, &models.GeneralResponse{
-		Data: &UpdateTopicResponse{
-			Topic: result,
-		},
-		ErrorMessage: "",
-		Message:      "OK",
+		t.ID = int64(intId)
+		return h.UseCase.UpdateTopic(ctx, t)
 	})
 }
 
