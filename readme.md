@@ -21,7 +21,7 @@ This repository is intended to learn how to implement Clean Architecture in Go &
 
     at this directory.
 
-## Testing
+### Testing
 
 ```
 go test ./...
